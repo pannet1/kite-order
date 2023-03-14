@@ -1,2 +1,2 @@
 @echo on
-cmd /k "cd /d E:\py\venv\Scripts & .\activate & cd /d E:\py\venv\dealer-web\dealer_web & uvicorn main:app --reload"
+cmd /k "cd /d D:\apps\py\env\Scripts & .\activate & cd /d D:\apps\py\venv\kite-order\kite_order & python main.py"
