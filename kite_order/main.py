@@ -79,16 +79,17 @@ def ordr_mgmt(dct_ordr: Dict, ops: str) -> None:
     dct_ordr.pop('status')
     dct_ordr['price'] = dct_ordr.pop('pric')
     dct_ordr['trigger_price'] = dct_ordr.pop('trgr')
-    dct_ordr['side'] == 'SELL' if dct_ordr.get('quantity') > 0 else 'BUY'
-    dct_ordr['quantity'] == abs(dct_ordr['quantity'])
+    dct_ordr['side'] = 'SELL' if dct_ordr.get('quantity') > 0 else 'BUY'
+    dct_ordr['quantity'] = abs(dct_ordr['quantity'])
     if ops == "SL" or "MARKET":
-        dct_ordr['order_type'] == ops
+        dct_ordr['order_type'] = ops
         dct_ordr.pop('order_id')
         status = z.order_place(**dct_ordr)
     elif ops == 'MODIFY' or 'TARGET':
-        dct_ordr['order_type'] == 'MARKET'
+        dct_ordr['order_type'] = 'MARKET'
         status = z.order_modify(**dct_ordr)
     return status
+
 
 z = get_zero()
 is_auth = z.authenticate()
@@ -131,28 +132,25 @@ while True:
             print("\n POSITIONS and STOPS")
             posn_stop = df_pos.merge(df_stop, how='left', on=[
                 'symbol', 'product'])
-            """
-            posn_stop= df_pos.set_index(["symbol","product"]).combine_first(
-                    df_stop.set_index(["symbol", "product"]))
-            posn_stop= posn_stop.reset_index()
-            """
-            # posn_stop['order_id'] = posn_stop['order_id'].fillna(0)
             print(posn_stop)
-            sleep(15)
+            sleep(5)
             for i, o in posn_stop.iterrows():
                 """
                 Positions without SL contains order_type as nan
                 """
                 if o['order_type'] != 'SL' and o['sqof'] <= 0:
-                    ordr_mgmt(o, 'SL')
+                    if not TESTING:
+                        ordr_mgmt(o, 'SL')
                     logging.info(f"placing stop for symbol {o['symbol']}")
                 elif o['order_type'] != 'SL' and o['sqof'] > 0:
-                    ordr_mgmt(o, 'MARKET')
+                    if not TESTING:
+                        ordr_mgmt(o, 'MARKET')
                     logging.info(
                         f"squaring {o['symbol']} in loss but without order")
                     continue
                 elif o['order_type'] == 'SL' and o['sqof'] > 0:
-                    ordr_mgmt(o, 'MODIFY')
+                    if not TESTING:
+                        ordr_mgmt(o, 'MODIFY')
                     logging.info(
                         f"modifying {o['order_id']} for {o['symbol']} in loss")
                     continue
@@ -163,7 +161,8 @@ while True:
             print(posn_trgt)
             for i, o in posn_trgt.iterrows():
                 if o['order_type'] == 'MARKET' and o['status'] == 'REJECTED':
-                    ordr_mgmt(o, 'TARGET')
+                    if not TESTING:
+                        ordr_mgmt(o, 'TARGET')
                     logging.info(f"target reached for {o['symbol']}")
             sleep(5)
 
