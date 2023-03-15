@@ -7,7 +7,7 @@ from toolkit.fileutils import Fileutils
 from toolkit.logger import Logger
 
 sec_dir = '../../../confid/'
-logging = Logger(30, sec_dir + 'kite_order.log')
+logging = Logger(20)
 TESTING = True
 if TESTING:
     from tests.orders import test_orders as orders
