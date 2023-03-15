@@ -1,6 +1,7 @@
 wheel
 kiteconnect
 webdriver_manager
+chromedriver
 selenium
 pyotp
 pandas
