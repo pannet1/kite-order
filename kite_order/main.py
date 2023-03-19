@@ -90,12 +90,13 @@ while True:
         df_ords = df_ords[df_ords['status'] != 'COMPLETE']
         df_ords['status'] = df_ords['status'].replace([None], 'UNKNOWN')
         print(df_ords, "\n")
-        sleep(5)
         df_ords = df_ords.filter(ordk)
 
         # filter dataframes based on order types
         df_stop = df_ords.query("order_type=='SL'").copy()
         df_trgt = df_ords.query("order_type=='MARKET'").copy()
+    print("sleeping for 1 sec")
+    sleep(1)
     lst_all_posn = small if TESTING else z.positions
     if any(lst_all_posn):
         filr_pos = pd.DataFrame.from_records(
@@ -111,12 +112,10 @@ while True:
             df_pos['trgr'] = df_pos.average_price - (df_pos.dirn * df_pos.trgr)
             df_pos['sqof'] = df_pos.dirn * (df_pos.trgr - df_pos.last_price)
             print(df_pos)
-            sleep(5)
             print("\n POSITIONS and STOPS")
             posn_stop = df_pos.merge(df_stop, how='left', on=[
                 'symbol', 'product'])
             print(posn_stop)
-            sleep(5)
             for i, o in posn_stop.iterrows():
                 """
                 Positions without SL contains order_type as nan
@@ -147,4 +146,5 @@ while True:
                     if not TESTING:
                         ordr_mgmt(o, 'TARGET')
                     logging.info(f"target reached for {o['symbol']}")
-            sleep(1)
+    print("sleeping for 1 sec")
+    sleep(1)
