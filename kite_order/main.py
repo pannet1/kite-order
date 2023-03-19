@@ -1,13 +1,18 @@
 import pandas as pd
 import numpy as np
 from time import sleep
-from typing import List, Union, Dict
-from omspy.brokers.zerodha import Zerodha
 from toolkit.fileutils import Fileutils
 from toolkit.logger import Logger
+from login_get_kite import get_kite
+from typing import Dict
 
-sec_dir = '../../../confid/'
-logging = Logger(20)
+
+api = ""  # "" is zerodha, optional bypass
+WORK_PATH = "../../confid/"
+logging = Logger(20, WORK_PATH + 'kite_order.log')
+# toolkit modules
+f = Fileutils()
+z = get_kite(api, WORK_PATH)
 TESTING = True
 if TESTING:
     from tests.orders import test_orders as orders
@@ -36,23 +41,6 @@ ordk = ['symbol',
         'order_id',
         'order_type',
         'status']
-
-
-def get_zero() -> Union[Zerodha, None]:
-    try:
-        fdct = f.get_lst_fm_yml(sec_dir + 'zerodha.yaml')
-        zera = Zerodha(user_id=fdct['userid'],
-                       password=fdct['password'],
-                       totp=fdct['totp'],
-                       api_key=fdct['api_key'],
-                       secret=fdct['secret'],
-                       tokpath=sec_dir + fdct['userid'] + '.txt'
-                       )
-    except Exception as e:
-        logging.error(f"unable to create broker object {e}")
-        # raise SystemExit(0)
-    else:
-        return zera
 
 
 def chek_stop(row: pd.Series) -> float:
@@ -89,11 +77,6 @@ def ordr_mgmt(dct_ordr: Dict, ops: str) -> None:
         dct_ordr['order_type'] = 'MARKET'
         status = z.order_modify(**dct_ordr)
     return status
-
-
-z = get_zero()
-is_auth = z.authenticate()
-print(is_auth)
 
 
 pd.options.mode.chained_assignment = None
@@ -164,25 +147,4 @@ while True:
                     if not TESTING:
                         ordr_mgmt(o, 'TARGET')
                     logging.info(f"target reached for {o['symbol']}")
-            sleep(5)
-
-
-def filter_dict_by_key(dct_in_lst: List[Dict], lst: List) -> List:
-    new_lst = []
-    for dct in dct_in_lst:
-        new_dct = {}
-        for key in lst:
-            if key in dct.keys():
-                new_dct[key] = dct[key]
-        new_lst.append(new_dct)
-    return new_lst
-
-
-def filter_dict_by_kv(
-        dct_in_lst: List[Dict],
-        key: str, val: str, op='') -> List:
-    new_lst = []
-    for dct in dct_in_lst:
-        if dct.get(key, None) == val:
-            new_lst.append(dct)
-    return new_lst
+            sleep(1)
