@@ -13,7 +13,7 @@ logging = Logger(20, WORK_PATH + 'kite_order.log')
 # toolkit modules
 f = Fileutils()
 z = get_kite(api, WORK_PATH)
-TESTING = True
+TESTING = False
 if TESTING:
     from tests.orders import test_orders as orders
     from tests.small import test_trades as small
@@ -82,10 +82,10 @@ def ordr_mgmt(dct_ordr: Dict, ops: str) -> None:
 pd.options.mode.chained_assignment = None
 while True:
     lst_all_ords = orders if TESTING else z.orders
-    if len(lst_all_ords) > 0:
+    if any(lst_all_ords):
         print("ORDERS")
         df_ords = pd.DataFrame(lst_all_ords)
-        # print(df_ords.columns.values)
+        print(df_ords.columns.values)
         df_ords = df_ords.filter(comk)
         df_ords = df_ords[df_ords['status'] != 'COMPLETE']
         df_ords['status'] = df_ords['status'].replace([None], 'UNKNOWN')
@@ -97,7 +97,7 @@ while True:
         df_stop = df_ords.query("order_type=='SL'").copy()
         df_trgt = df_ords.query("order_type=='MARKET'").copy()
     lst_all_posn = small if TESTING else z.positions
-    if len(lst_all_posn) > 0:
+    if any(lst_all_posn):
         filr_pos = pd.DataFrame.from_records(
             lst_all_posn)
         filr_pos = filr_pos.filter(comk)
