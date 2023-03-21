@@ -81,7 +81,7 @@ if any(lst_all_ords):
     print(df_ords, "\n")
     # filter dataframes based on order types
     df_stop = df_ords.query("order_type=='SL'").copy()
-    df_trgt = df_ords.query("order_type=='MARKET'").copy()
+    df_trgt = df_ords.query("order_type=='MARKET' and status=='REJECTED'").copy()
     Utilities().slp_til_nxt_sec()
 with open("tests/posn.json") as posnjson:
     lst_all_posn = json.loads(posnjson.read())
@@ -127,8 +127,6 @@ if any(lst_all_posn):
         print("\n POSITION and TARGETS")
         print(posn_trgt)
         for i, o in posn_trgt.iterrows():
-            if o['order_type'] == 'MARKET' and o['status'] == 'REJECTED':
-                print(f"dir {o['dirn']} and side is {o['side']}")
-                ordr_mgmt(o, 'TARGET')
-                logging.info(f"target reached for {o['symbol']}")
+            ordr_mgmt(o, 'TARGET')
+            logging.info(f"target reached for {o['symbol']}")
 Utilities().slp_til_nxt_sec()
