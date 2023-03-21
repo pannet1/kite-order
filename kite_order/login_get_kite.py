@@ -49,7 +49,7 @@ def _get_bypass(sec_dir):
 
 def _get_zerodha(sec_dir):
     try:
-        fpath = sec_dir + 'zerodha.yaml'
+        fpath = sec_dir + 'deepak.yaml'
         print(f'reading credentials from {fpath}')
         fdct = f.get_lst_fm_yml(fpath)
         print(fdct)

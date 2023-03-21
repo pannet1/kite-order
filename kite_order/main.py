@@ -1,22 +1,15 @@
 import pandas as pd
 import numpy as np
-from time import sleep
 from toolkit.fileutils import Fileutils
+from toolkit.utilities import Utilities
 from toolkit.logger import Logger
 from login_get_kite import get_kite
 from typing import Dict
 
-
-api = ""  # "" is zerodha, optional bypass
 WORK_PATH = "../../confid/"
 logging = Logger(20, WORK_PATH + 'kite_order.log')
-# toolkit modules
-f = Fileutils()
+api = ""  # "" is zerodha, optional bypass
 z = get_kite(api, WORK_PATH)
-TESTING = False
-if TESTING:
-    from tests.orders import test_orders as orders
-    from tests.small import test_trades as small
 
 f = Fileutils()
 MIS = f.get_lst_fm_yml('MIS.yaml')
@@ -35,7 +28,6 @@ comk = ['exchange',
         'average_price',
         'last_price']
 
-
 ordk = ['symbol',
         'product',
         'order_id',
@@ -44,19 +36,17 @@ ordk = ['symbol',
 
 
 def chek_stop(row: pd.Series) -> float:
-    dct_stop = MIS.get(row.symbol[-2:],  False) if row.product == 'MIS' else \
-        NRML.get(row.symbol[-2:], False)
+    dct_stop = MIS.get(row['symbol'][-2:], False) if \
+        row['product'] == 'MIS' else NRML.get(row['symbol'][-2:], False)
     if any(dct_stop):
         return dct_stop['price']
-    return 0
 
 
 def chek_trgr(row: pd.Series) -> float:
-    dct_trgr = MIS.get(row.symbol[-2:],  False) if row.product == 'MIS' else \
-        NRML.get(row.symbol[-2:], False)
+    dct_trgr = MIS.get(row['symbol'][-2:],  False) if \
+        row['product'] == 'MIS' else NRML.get(row['symbol'][-2:], False)
     if any(dct_trgr):
         return dct_trgr['trigger']
-    return 0
 
 
 def ordr_mgmt(dct_ordr: Dict, ops: str) -> None:
@@ -73,34 +63,33 @@ def ordr_mgmt(dct_ordr: Dict, ops: str) -> None:
         dct_ordr['order_type'] = ops
         dct_ordr.pop('order_id')
         status = z.order_place(**dct_ordr)
+        logging.info(f" order placed \n {dct_ordr} \n status {status}")
     elif ops == 'MODIFY' or 'TARGET':
         dct_ordr['order_type'] = 'MARKET'
         status = z.order_modify(**dct_ordr)
-    return status
+        logging.info(f" order modified \n { dct_ordr } \n status {status}")
 
 
 pd.options.mode.chained_assignment = None
 while True:
-    lst_all_ords = orders if TESTING else z.orders
+    lst_all_ords = z.orders
     if any(lst_all_ords):
         print("ORDERS")
         df_ords = pd.DataFrame(lst_all_ords)
-        print(df_ords.columns.values)
-        df_ords = df_ords.filter(comk)
-        df_ords = df_ords[df_ords['status'] != 'COMPLETE']
+        df_ords = df_ords.query("exchange=='NFO'")
+        df_ords = df_ords[df_ords["status"] != 'COMPLETE']
+        df_ords = df_ords[df_ords["status"] != 'CANCELED']
         df_ords['status'] = df_ords['status'].replace([None], 'UNKNOWN')
-        print(df_ords, "\n")
         df_ords = df_ords.filter(ordk)
-
+        print(df_ords, "\n")
         # filter dataframes based on order types
         df_stop = df_ords.query("order_type=='SL'").copy()
-        df_trgt = df_ords.query("order_type=='MARKET'").copy()
-    print("sleeping for 1 sec")
-    sleep(1)
-    lst_all_posn = small if TESTING else z.positions
+        df_trgt = df_ords.query("order_type=='MARKET' and status=='REJECTED'").copy()
+    lst_all_posn = z.positions
     if any(lst_all_posn):
         filr_pos = pd.DataFrame.from_records(
             lst_all_posn)
+        filr_pos = filr_pos.query("exchange=='NFO'")
         filr_pos = filr_pos.filter(comk)
         df_pos = filr_pos.loc[filr_pos["quantity"] != 0]
         if not df_pos.empty:
@@ -121,20 +110,17 @@ while True:
                 Positions without SL contains order_type as nan
                 """
                 if o['order_type'] != 'SL' and o['sqof'] <= 0:
-                    if not TESTING:
-                        ordr_mgmt(o, 'SL')
-                    logging.info(f"placing stop for symbol {o['symbol']}")
+                    ordr_mgmt(o, 'SL')
+                    logging.info(f"placed stop for symbol {o['symbol']}")
                 elif o['order_type'] != 'SL' and o['sqof'] > 0:
-                    if not TESTING:
-                        ordr_mgmt(o, 'MARKET')
+                    ordr_mgmt(o, 'MARKET')
                     logging.info(
                         f"squaring {o['symbol']} in loss but without order")
                     continue
                 elif o['order_type'] == 'SL' and o['sqof'] > 0:
-                    if not TESTING:
-                        ordr_mgmt(o, 'MODIFY')
                     logging.info(
-                        f"modifying {o['order_id']} for {o['symbol']} in loss")
+                        f"modified {o['order_id']} for {o['symbol']} in loss")
+                    ordr_mgmt(o, 'MODIFY')
                     continue
                 # positon without stoploss but no stop order yet
             posn_trgt = df_pos.merge(
@@ -142,9 +128,6 @@ while True:
             print("\n POSITION and TARGETS")
             print(posn_trgt)
             for i, o in posn_trgt.iterrows():
-                if o['order_type'] == 'MARKET' and o['status'] == 'REJECTED':
-                    if not TESTING:
-                        ordr_mgmt(o, 'TARGET')
-                    logging.info(f"target reached for {o['symbol']}")
-    print("sleeping for 1 sec")
-    sleep(1)
+                ordr_mgmt(o, 'TARGET')
+                logging.info(f"target reached for {o['symbol']}")
+    Utilities().slp_til_nxt_sec()
