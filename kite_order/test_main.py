@@ -7,7 +7,7 @@ from typing import Dict
 import json
 
 WORK_PATH = "../../confid/"
-logging = Logger(20, WORK_PATH + 'kite_order.log')
+logging = Logger(20)
 f = Fileutils()
 
 MIS = f.get_lst_fm_yml('MIS.yaml')
@@ -81,7 +81,8 @@ if any(lst_all_ords):
     print(df_ords, "\n")
     # filter dataframes based on order types
     df_stop = df_ords.query("order_type=='SL'").copy()
-    df_trgt = df_ords.query("order_type=='MARKET' and status=='REJECTED'").copy()
+    df_trgt = df_ords.query(
+        "order_type=='MARKET' and status=='REJECTED'").copy()
     Utilities().slp_til_nxt_sec()
 with open("tests/posn.json") as posnjson:
     lst_all_posn = json.loads(posnjson.read())
@@ -115,18 +116,32 @@ if any(lst_all_posn):
                 ordr_mgmt(o, 'MARKET')
                 logging.info(
                     f"squaring {o['symbol']} in loss but without order")
-                continue
             elif o['order_type'] == 'SL' and o['sqof'] > 0:
                 logging.info(
                     f"modified {o['order_id']} for {o['symbol']} in loss")
                 ordr_mgmt(o, 'MODIFY')
-                continue
-            # positon without stoploss but no stop order yet
-        posn_trgt = df_pos.merge(
-            df_trgt, how='left', on=['symbol', 'product'])
-        print("\n POSITION and TARGETS")
-        print(posn_trgt)
-        for i, o in posn_trgt.iterrows():
-            ordr_mgmt(o, 'TARGET')
-            logging.info(f"target reached for {o['symbol']}")
+
+        if not posn_stop.empty:
+            print("\n POSITION and TARGETS")
+            print("stop orders")
+            stop = posn_stop.query("order_type=='SL'").copy()
+            stop = stop.filter(ordk).drop(["status", "order_type"], axis=1)
+            print(stop)
+            print("target orders")
+            posn_trgt = df_pos.merge(df_trgt, how='left', on=[
+                'symbol', 'product'])
+            trgt = posn_trgt.query(
+                "order_type=='MARKET' and status=='REJECTED'").copy()
+            trgt = trgt.filter(comk).drop(["order_id"], axis=1)
+            print(trgt)
+            posn_trgt = trgt.merge(stop, how="left", on=[
+                'symbol', 'product'])
+            print(posn_trgt)
+            for i, o in posn_trgt.iterrows():
+                o["dirn"] = 1 if o['quantity'] > 0 else -1
+                o['sqof'] = 0
+                o['pric'] = 0
+                o['trgr'] = 0
+                ordr_mgmt(o, 'TARGET')
+                logging.info(f"target reached for {o['symbol']}")
 Utilities().slp_til_nxt_sec()
