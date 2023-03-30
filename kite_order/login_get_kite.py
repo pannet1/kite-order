@@ -28,8 +28,7 @@ def _get_bypass(sec_dir):
             print(f'file modified today ... reading {enctoken}')
             with open(tokpath, 'r') as tf:
                 enctoken = tf.read()
-                if len(enctoken) < 5:
-                    enctoken = None
+        print(f"token path {tokpath}")
         print(f'enctoken to broker {enctoken}')
         bypass = Bypass(lst_c['userid'],
                         lst_c['password'],
@@ -42,6 +41,7 @@ def _get_bypass(sec_dir):
                 with open(tokpath, 'w') as tw:
                     tw.write(enctoken)
     except Exception as e:
+        print(f"bypass token is {bypass.kite.enctoken}")
         print(f"unable to create bypass object {e}")
     else:
         return bypass
@@ -63,7 +63,7 @@ def _get_zerodha(sec_dir):
         zera.authenticate()
     except Exception as e:
         print(f"exception while creating zerodha object {e}")
-    finally:
+    else:
         return zera
 
 
