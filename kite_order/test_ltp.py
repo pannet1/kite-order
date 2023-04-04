@@ -2,7 +2,7 @@
 from toolkit.utilities import Utilities
 import json
 from login_get_kite import get_kite
-from main import get_orders, get_positions, merg_pos_stop, is_not_order_dirty, do_targets, update_ltp
+from main import get_positions,  update_ltp
 
 try:
     sec_dir = "../../confid/"
