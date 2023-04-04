@@ -1,7 +1,8 @@
 from toolkit.utilities import Utilities
 import json
 from paper import Paper
-from main import get_orders, get_positions, merg_pos_stop, is_not_order_dirty, do_targets, update_ltp
+from main import get_orders, get_positions, merg_pos_stop, is_not_order_dirty
+from main import do_targets, update_ltp
 
 
 z = Paper()
