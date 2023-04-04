@@ -1,7 +1,7 @@
 'CE':
   'trigger': 10
-  'price': 20
+  'price': 12
 'PE':
-  'trigger': 10
-  'price': 20
+  'trigger': 13
+  'price': 25
 
