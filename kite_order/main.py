@@ -7,8 +7,8 @@ from login_get_kite import get_kite
 from typing import Dict
 
 WORK_PATH = "../../confid/"
-#  logging = Logger(20, WORK_PATH + 'kite_order.log')
-logging = Logger(30)
+logging = Logger(20, WORK_PATH + 'kite_order.log')
+# logging = Logger(20)
 df_null = pd.DataFrame()
 f = Fileutils()
 MIS = f.get_lst_fm_yml('MIS.yaml')
@@ -56,6 +56,7 @@ def price_trigger(row):
             price = avg - (row['dirn'] * row['pric'])
             trigger = avg - (row['dirn'] * row['trgr'])
             # Return a Series object with two named columns
+            print(f"avg {avg}, price {price}, trigger {trigger}")
             return pd.Series({'pric': price, 'trgr': trigger})
         else:
             print(f"average price is {row['average_price']}")
@@ -84,18 +85,23 @@ def ordr_mgmt(dct_ordr: Dict, ops: str, z) -> None:
         dct_ordr['trigger_price'] = trgr
         dct_ordr['side'] = 'SELL' if dct_ordr.get('quantity') > 0 else 'BUY'
         dct_ordr['quantity'] = abs(dct_ordr['quantity'])
-        if ops == "SL" or "MARKET":
+        logging.info(f" ops is: {ops}")
+        if (ops == "SL") or (ops == "MARKET"):
             dct_ordr['order_type'] = ops
             dct_ordr.pop('order_id')
+            logging.info(dct_ordr)
             status = z.order_place(**dct_ordr)
-            logging.info(f" order placed \n {dct_ordr} \n status {status}")
-        elif ops == 'MODIFY' or 'TARGET':
-            dct_ordr['order_type'] = 'MARKET'
-            status = z.order_modify(**dct_ordr)
-            logging.info(f" order modified \n { dct_ordr } \n status {status}")
+            return status
+        elif (ops == "MODIFY") or (ops == "TARGET"):
+            dct_args = dict(order_type='MARKET')
+            dct_args['quantity'] = dct_ordr.get('quantity', 0)
+            logging.info(dct_args)
+            status = z.order_modify(**dct_args)
+            return status
+        else:
+            logging.error(f"unknown conditions {ops}")
     except Exception as e:
-        print(str(e))
-        return
+        logging.error(f"{str(e)} when managing order")
 
 
 def get_orders(lst_all_ords):
@@ -192,19 +198,20 @@ def update_ltp(df, z):
     prefix = "NFO:"
     lst_exchsym = [prefix + sym for sym in lst_sym]
     resp = z.ltp(lst_exchsym)
-    if resp:
-        flat = [{"symbol": k.removeprefix(prefix), "last_price": v.get(
-            'last_price')} for k, v in resp.items()]
-        df_ltp = pd.DataFrame.from_dict(flat)
-        df.drop('last_price', inplace=True, axis=1)
-        df = df.merge(df_ltp, how='inner', on=['symbol'])
-        print(df)
+    flat = [{"symbol": k.removeprefix(prefix), "last_price": v.get(
+        'last_price')} for k, v in resp.items()]
+    df_ltp = pd.DataFrame.from_dict(flat)
+    df.drop('last_price', inplace=True, axis=1)
+    df = df.merge(df_ltp, how='inner', on=['symbol'])
+    df['sqof'] = df.dirn * (df.trgr - df.last_price)
+    print("after ltp")
+    print(df)
     return df
 
 
 if __name__ == "__main__":
     api = ""  # "" is zerodha, optional bypass
-    log = Logger(10)
+    log = Logger(10, WORK_PATH + "kite_order.log")
     z = get_kite(api, WORK_PATH)
     while True:
         try:

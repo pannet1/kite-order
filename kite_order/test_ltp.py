@@ -1,4 +1,3 @@
-#!bin/python
 from toolkit.utilities import Utilities
 import json
 from login_get_kite import get_kite

@@ -1,4 +1,3 @@
-from pprint import pprint
 import random
 
 
@@ -12,6 +11,8 @@ class Paper:
 
     def ltp(self, exchsym):
         if type(exchsym) == list:
-            return [{k: {"last_price": random.randint(10, 60)}} for k in exchsym]
+            resp = {key: {'last_price': round(
+                random.uniform(10, 60), 2)} for key in exchsym}
+            return resp
         else:
             return {exchsym: {"last_price": random.randint(10, 60)}}
