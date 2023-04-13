@@ -93,10 +93,17 @@ def ordr_mgmt(dct_ordr: Dict, ops: str, z) -> None:
             status = z.order_place(**dct_ordr)
             return status
         elif (ops == "MODIFY") or (ops == "TARGET"):
+            """
             dct_args = dict(order_type='MARKET')
             dct_args['quantity'] = dct_ordr.get('quantity', 0)
-            logging.info(dct_args)
-            status = z.order_modify(**dct_args)
+            """
+            dct_ordr.pop('exchange')
+            dct_ordr.pop('symbol')
+            dct_ordr.pop('product')
+            dct_ordr.pop('side')
+            dct_ordr['order_type'] == "MARKET"
+            logging.info(dct_ordr)
+            status = z.order_modify(**dct_ordr)
             return status
         else:
             logging.error(f"unknown conditions {ops}")
