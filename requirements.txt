@@ -10,6 +10,5 @@ uvicorn[standard]
 fastapi
 selenium
 webdriver_manager
-chromedriver
 pyotp
 jinja2
