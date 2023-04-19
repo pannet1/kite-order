@@ -25,14 +25,14 @@ python -m venv venv
 </code>
 4. activate the venv
 <code>
-cd venv<br>
+cd venv</br>
 . Scripts/activate
 </code>
 notice that the prompt is now changed
 =IMPORTANT, go to next step 5 only if this happened=
 
 5. install the requirements
-from kite-order directory run<br>
+from kite-order directory run</br>
 <code>
 pip install -r requirements.txt
 </code>
@@ -40,12 +40,12 @@ pip install -r requirements.txt
 <code>git clone https://github.com/pannet1/kite-order.git</code>
 
 5. create confid directory
-store the credentials in zerodha.yaml<br>
-create another directory kite_order<br>
+store the credentials in zerodha.yaml</br>
+create another directory kite_order</br>
 store MIS.yaml and NRML.yaml here
 
 6. create shortcut for run_algo
-cd the kite-order<br>
+cd the kite-order</br>
 then create shortcut for run_algo
 
 
