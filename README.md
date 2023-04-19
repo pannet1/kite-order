@@ -8,11 +8,10 @@ https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe
 install python in the default location
 
 3. download gitbash
-<pre>
+
 https://git-scm.com/download/win
 https://github.com/git-for-windows/git/releases/download/v2.40.0.windows.1/Git-2.40.0-64-bit.exe
-</pre>
-install in default location
+> install in default location
 
 3. create directories and install venv
 create the following directories
