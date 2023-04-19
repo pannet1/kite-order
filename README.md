@@ -8,42 +8,44 @@ https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe
 install python in the default location
 
 3. download gitbash
-
+<pre>
 https://git-scm.com/download/win
 https://github.com/git-for-windows/git/releases/download/v2.40.0.windows.1/Git-2.40.0-64-bit.exe
-> install in default location
+</pre>
+install in default location
 
-3. create directories and install venv
+4. create directories and install venv
 create the following directories
 <pre>
-C:/ecomesense/venv
+C:/ecomsense/venv
 </pre>
 cd to ecomesense
 <pre>
 python -m venv venv
 </pre>
-4. activate the venv
+5. activate the venv
 <pre>
 cd venv</br>
 . Scripts/activate
 </pre>
-notice that the prompt is now changed
-=IMPORTANT, go to next step 5 only if this happened=
+notice that the prompt is now changed to (venv)
+== IMPORTANT, go to next step 5 only if this happened ==
 
-5. install the requirements
+6. install the requirements
 from kite-order directory run</br>
 <pre>
 pip install -r requirements.txt
 </pre>
-4. install kite-order
+7. install kite-order
 <pre>git clone https://github.com/pannet1/kite-order.git</pre>
 
-5. create confid directory
+8. create confid directory
+cd c:\ecomsense\venv\confid 
 store the credentials in zerodha.yaml</br>
 create another directory kite_order</br>
 store MIS.yaml and NRML.yaml here
 
-6. create shortcut for run_algo
+9. create shortcut for run_algo
 cd the kite-order</br>
 then create shortcut for run_algo
 
