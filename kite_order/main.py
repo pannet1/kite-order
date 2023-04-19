@@ -7,12 +7,13 @@ from login_get_kite import get_kite
 from typing import Dict
 
 WORK_PATH = "../../confid/"
+RISK_PATH = WORK_PATH + "kite_order/"
 logging = Logger(20, WORK_PATH + 'kite_order.log')
 # logging = Logger(20)
 df_null = pd.DataFrame()
 f = Fileutils()
-MIS = f.get_lst_fm_yml('MIS.yaml')
-NRML = f.get_lst_fm_yml('NRML.yaml')
+MIS = f.get_lst_fm_yml(RISK_PATH + 'MIS.yaml')
+NRML = f.get_lst_fm_yml(RISK_PATH + 'NRML.yaml')
 comk = ['exchange',
         'symbol',
         'product',
@@ -218,7 +219,7 @@ def update_ltp(df, z):
 
 if __name__ == "__main__":
     api = ""  # "" is zerodha, optional bypass
-    log = Logger(10, WORK_PATH + "kite_order.log")
+    log = Logger(20, WORK_PATH + "kite_order.log")
     z = get_kite(api, WORK_PATH)
     while True:
         try:
